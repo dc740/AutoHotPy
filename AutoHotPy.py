@@ -59,7 +59,7 @@ class Key(object):
         event.code = self.code
         event.state = InterceptionKeyState.INTERCEPTION_KEY_DOWN
         self.auto.sendToDefaultKeyboard(event)
-        time.sleep(self.auto.default_interval)
+        self.sleep()
         event.state = InterceptionKeyState.INTERCEPTION_KEY_UP
         self.auto.sendToDefaultKeyboard(event)
         
@@ -304,11 +304,17 @@ class AutoHotPy(object):
         """
         return None
         
-    def sleep(self):
+    def sleep(self, *args):
         """
-        Sleep default interval. useful for waiting between keypress.
+        Sleep. If no parameters are sent, default_interval is assumed.
+        useful for waiting between keypress.
         """
-        time.sleep(self.default_interval)
+        if (len(args) == 0):
+            interval = self.default_interval
+        else:
+            interval=args[0]
+        
+        time.sleep(interval)
             
     def start(self):
         if (not self.exit_configured):
@@ -449,31 +455,5 @@ class AutoHotPy(object):
     
     def sendToDevice(self, device, stroke):
         self.interception.interception_send(self.context, device, ctypes.byref(stroke), 1)    
-    
-if __name__=="__main__":
-    auto = AutoHotPy()
-    auto.registerExit(auto.ESC)
-    def abc(au,event):
-        print("Abc running")
-        au.A.press()
-        au.B.press()
-        au.C.press()
-    def openTaskManager(autohotpy,event):
-        print("abc")
-        if (autohotpy.CTRL.isPressed() & autohotpy.ALT.isPressed()):
-            print("123")
-            autohotpy.ALT.up()
-            autohotpy.sleep() #don't forget to sleep when you manually send a "down" state
-            autohotpy.LEFT_SHIFT.down()
-            autohotpy.sleep() #don't forget to sleep when you manually send a "down" state
-            autohotpy.ESC.down()
-            autohotpy.sleep() #don't forget to sleep when you manually send a "down" state
-            autohotpy.LEFT_SHIFT.up()
-            autohotpy.ESC.up()
-
-        
-    auto.registerForKeyDownAndDisableHoldEvent(auto.C,abc) #write "abc"
-    auto.registerForKeyDown(auto.DELETE,openTaskManager)   #press ctrl shift space in windows 7
-    auto.start()
     
     
