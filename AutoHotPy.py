@@ -68,7 +68,10 @@ class Key(object):
         down.code = self.code
         down.state = InterceptionKeyState.INTERCEPTION_KEY_DOWN
         self.auto.sendToDefaultKeyboard(down)
-        
+    
+    def isPressed(self):
+        return not(self.auto.getKeyboardState(self.code) & InterceptionKeyState.INTERCEPTION_KEY_UP)
+    
     def __int__(self):
         return int(self.code)
         
@@ -455,10 +458,22 @@ if __name__=="__main__":
         au.A.press()
         au.B.press()
         au.C.press()
-        
+    def openTaskManager(autohotpy,event):
+        print("abc")
+        if (autohotpy.CTRL.isPressed() & autohotpy.ALT.isPressed()):
+            print("123")
+            autohotpy.ALT.up()
+            autohotpy.sleep() #don't forget to sleep when you manually send a "down" state
+            autohotpy.LEFT_SHIFT.down()
+            autohotpy.sleep() #don't forget to sleep when you manually send a "down" state
+            autohotpy.ESC.down()
+            autohotpy.sleep() #don't forget to sleep when you manually send a "down" state
+            autohotpy.LEFT_SHIFT.up()
+            autohotpy.ESC.up()
 
         
-    auto.registerForKeyDownAndDisableHoldEvent(auto.C,abc)
+    auto.registerForKeyDownAndDisableHoldEvent(auto.C,abc) #write "abc"
+    auto.registerForKeyDown(auto.DELETE,openTaskManager)   #press ctrl shift space in windows 7
     auto.start()
     
     
