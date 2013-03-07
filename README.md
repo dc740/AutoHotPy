@@ -28,7 +28,7 @@ hint: if double clicking in the executable doesn't install the driver (you will 
 
 ##Intro
 Python is a real programming language, so remember: everything you learn while you write the scripts can be used to write your own programs!
-To use AutoHotPy you only have to write a script (patience! you don't know how yet) and place it in the same folder where you installed the app.
+To use AutoHotPy you only have to write a script (patience!) and place it in the same folder where you installed the app.
 I will add more documentation later but lets get you working fast.
 
 
@@ -45,6 +45,8 @@ There is literally no limit on how many pressed keys you can handle from AutoHot
 
 "Example3-MouseButtons.py": Handling mouse movement and clicks is the hardest part in AutoHotPy, but because you have to do each movement or click manually.
 
+##Running the scripts
+To run any of the scripts open a command line and run "python <yourscript>.py". That's all you need.
 
 Be patient! Don't panic if you need help with the language, there are many python developers around the world.
 You will find help in any language you can image.
