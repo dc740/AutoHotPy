@@ -30,9 +30,9 @@ def exitAutoHotKey(autohotpy,event):
     """
     autohotpy.stop()
         
-def leftButton(autohotpy,event):
+def rightButton(autohotpy,event):
     """
-    This function is called when you press LEFT mouse button
+    This function simulates a right click
     """
     stroke = InterceptionMouseStroke() # I highly suggest you to open InterceptionWrapper to read which attributes this class has
     
@@ -42,9 +42,9 @@ def leftButton(autohotpy,event):
     stroke.state = InterceptionMouseState.INTERCEPTION_MOUSE_RIGHT_BUTTON_UP
     autohotpy.sendToDefaultMouse(stroke)
     
-def rightButton(autohotpy,event):
+def leftButton(autohotpy,event):
     """
-    This function is called when you press RIGHT mouse button
+    This function simulates a left click
     """
     stroke = InterceptionMouseStroke()
     stroke.state = InterceptionMouseState.INTERCEPTION_MOUSE_LEFT_BUTTON_DOWN
@@ -57,8 +57,7 @@ if __name__=="__main__":
     auto = AutoHotPy()
     auto.registerExit(auto.ESC,exitAutoHotKey)   # Registering an end key is mandatory to be able tos top the program gracefully
     
-    # In win7 the task manager is launched when you press Ctrl + Shift + ESC
-    # I don't like that. Lets call the task manager when you press Ctrl + Alt + Supr
-    auto.registerForMouseButton(InterceptionMouseState.INTERCEPTION_MOUSE_LEFT_BUTTON_DOWN,leftButton)
-    auto.registerForMouseButton(InterceptionMouseState.INTERCEPTION_MOUSE_RIGHT_BUTTON_DOWN,rightButton)
+    # lets switch right and left mouse buttons!
+    auto.registerForMouseButton(InterceptionMouseState.INTERCEPTION_MOUSE_LEFT_BUTTON_DOWN,rightButton)
+    auto.registerForMouseButton(InterceptionMouseState.INTERCEPTION_MOUSE_RIGHT_BUTTON_DOWN,leftButton)
     auto.start()
