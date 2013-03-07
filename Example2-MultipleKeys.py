@@ -23,15 +23,15 @@ def exitAutoHotKey(autohotpy,event):
     """
     exit the program when you press Ctrl + Alt + F10
     """
-    if (autohotpy.CTRL.isPressed() & autohotpy.ALT.isPressed()):  #check if ctrl and alt are also pressed
+    if (autohotpy.LEFT_CTRL.isPressed() & autohotpy.LEFT_ALT.isPressed()):  #check if ctrl and alt are also pressed
         autohotpy.stop()
         
 def openTaskManager(autohotpy,event):
     """
     This function is called when you press DELETE key
     """
-    if (autohotpy.CTRL.isPressed() & autohotpy.ALT.isPressed()):  #check if ctrl and alt are also pressed
-        autohotpy.ALT.up()        #release alt
+    if (autohotpy.LEFT_CTRL.isPressed() & autohotpy.LEFT_ALT.isPressed()):  #check if ctrl and alt are also pressed
+        autohotpy.LEFT_ALT.up()        #release alt
         autohotpy.sleep() #don't forget to sleep when you manually send a "down" state
         autohotpy.LEFT_SHIFT.down()
         autohotpy.sleep() 

@@ -78,7 +78,7 @@ class Key(object):
         self.auto.sendToDefaultKeyboard(down)
     
     def isPressed(self):
-        return not(self.auto.getKeyboardState(self.code,self.state) & InterceptionKeyState.INTERCEPTION_KEY_UP)
+        return bool(not(self.auto.getKeyboardState(self.code,self.state) & InterceptionKeyState.INTERCEPTION_KEY_UP))
     
     def __int__(self):
         return int(self.code)
@@ -100,7 +100,7 @@ class AutoHotPy(object):
         self.keyboard_handler_up = collections.defaultdict(self.__default_element)
         self.mouse_handler_hold = collections.defaultdict(self.__default_element)
         self.mouse_handler = collections.defaultdict(self.__default_element)
-        self.keyboard_state = collections.defaultdict(self.__default_element)
+        self.keyboard_state = collections.defaultdict(self.__default_kb_element)
         self.mouse_state = collections.defaultdict(self.__default_element)
         
         
@@ -134,7 +134,8 @@ class AutoHotPy(object):
         self.BRACKET_LEFT=Key(self,0x1A)
         self.BRACKET_RIGHT=Key(self,0x1B)
         self.ENTER=Key(self,0x1C)
-        self.CTRL=Key(self,0x1D)
+        self.LEFT_CTRL=Key(self,0x1D)
+        self.RIGHT_CTRL=Key(self,0x1D, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.A=Key(self,0x1E)
         self.S=Key(self,0x1F)
         self.D=Key(self,0x20)
@@ -160,8 +161,9 @@ class AutoHotPy(object):
         self.DOT=Key(self,0x34)
         self.SLASH=Key(self,0x35)
         self.RIGHT_SHIFT=Key(self,0x36)
-        self.PRINT_SCREEN=Key(self,0x37)
-        self.ALT=Key(self,0x38)
+        self.PRINT_SCREEN=Key(self,0x37, InterceptionKeyState.INTERCEPTION_KEY_E0)
+        self.LEFT_ALT=Key(self,0x38)
+        self.RIGHT_ALT=Key(self,0x38, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.SPACE=Key(self,0x39)
         self.CAPSLOCK=Key(self,0x3A)
         self.F1=Key(self,0x3B)
@@ -178,25 +180,28 @@ class AutoHotPy(object):
         self.SCROLLLOCK=Key(self,0x46)
         self.HOME=Key(self,0x47)
         self.UP_ARROW=Key(self,0x48, InterceptionKeyState.INTERCEPTION_KEY_E0)
-        self.PAGE_UP=Key(self,0x49)
+        self.PAGE_UP=Key(self,0x49, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.DASH_NUM=Key(self,0x4A)
         self.LEFT_ARROW=Key(self,0x4B, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.NUMERIC_5 =Key(self,0x4C)
         self.RIGHT_ARROW=Key(self,0x4D, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.PLUS=Key(self,0x4E)
-        self.END=Key(self,0x4F)
+        self.END=Key(self,0x4F, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.DOWN_ARROW=Key(self,0x50, InterceptionKeyState.INTERCEPTION_KEY_E0)
-        self.PAGE_DOWN=Key(self,0x51)
-        self.INSERT=Key(self,0x52)
-        self.DELETE=Key(self,0x53)
+        self.PAGE_DOWN=Key(self,0x51, InterceptionKeyState.INTERCEPTION_KEY_E0)
+        self.INSERT=Key(self,0x52, InterceptionKeyState.INTERCEPTION_KEY_E0)
+        self.DELETE=Key(self,0x53, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.SHIFT_F1=Key(self,0x54)
         self.SHIFT_F2=Key(self,0x55)
         self.SHIFT_F3=Key(self,0x56)
-        self.SHIFT_F4=Key(self,0x57)
-        self.SHIFT_F5=Key(self,0x58)
+        #self.SHIFT_F4=Key(self,0x57)
+        #self.SHIFT_F5=Key(self,0x58)
+        self.F11=Key(self,0x57) #these are not common. and might vary from one keyboard to another
+        self.F12=Key(self,0x58)
         self.SHIFT_F6=Key(self,0x59)
         self.SHIFT_F7=Key(self,0x5A)
         self.SHIFT_F8=Key(self,0x5B)
+        self.SYSTEM=Key(self,0x5B, InterceptionKeyState.INTERCEPTION_KEY_E0) #commonly known as windows key
         self.SHIFT_F9=Key(self,0x5C)
         self.SHIFT_F10=Key(self,0x5D)
         self.CTRL_F1=Key(self,0x5E)
@@ -238,8 +243,8 @@ class AutoHotPy(object):
         self.ALT_DASH=Key(self,0x82)
         self.ALT_EQUALS=Key(self,0x82)
         self.CTRL_PAGE_UP=Key(self,0x84)
-        self.F11=Key(self,0x85)
-        self.F12=Key(self,0x86)
+        #self.F11=Key(self,0x85)
+        #self.F12=Key(self,0x86)
         self.SHIFT_F11=Key(self,0x87)
         self.SHIFT_F12=Key(self,0x88)
         self.CTRL_F11=Key(self,0x89)
@@ -280,6 +285,12 @@ class AutoHotPy(object):
         to differentiate left and right control keys, arrows from numbers, etc
         """
         return int("0x%s%s"% (hex(code).replace('0x', ''),hex(state & 0xFE).replace('0x', '')),16)
+    
+    def __default_kb_element(self):
+        """
+        if there is not state, it has never been pressed, so it's up
+        """
+        return InterceptionKeyState.INTERCEPTION_KEY_UP
         
     def __default_element(self):
         """
