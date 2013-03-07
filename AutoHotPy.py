@@ -279,7 +279,7 @@ class AutoHotPy(object):
         up and down bits. This is done to consider E0 and E1 states
         to differentiate left and right control keys, arrows from numbers, etc
         """
-        return int("%s%s"% (hex(code).replace('0x', ''),hex(state & 0xFE).replace('0x', '')))
+        return int("0x%s%s"% (hex(code).replace('0x', ''),hex(state & 0xFE).replace('0x', '')),16)
         
     def __default_element(self):
         """
