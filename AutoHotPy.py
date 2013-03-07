@@ -51,6 +51,10 @@ class Key(object):
             self.state = args[0]
         else:
             self.state = 0
+        self.key_id = auto.get_key_id(self.code, self.state)
+        
+    def get_id(self):
+        return self.key_id
         
     def up(self):
         up = InterceptionKeyStroke()
@@ -74,7 +78,7 @@ class Key(object):
         self.auto.sendToDefaultKeyboard(down)
     
     def isPressed(self):
-        return not(self.auto.getKeyboardState(self.code) & InterceptionKeyState.INTERCEPTION_KEY_UP)
+        return not(self.auto.getKeyboardState(self.code,self.state) & InterceptionKeyState.INTERCEPTION_KEY_UP)
     
     def __int__(self):
         return int(self.code)
@@ -269,6 +273,14 @@ class AutoHotPy(object):
         self.ALT_TAB=Key(self,0xA5)
         self.ALT_ENTER_NUM=Key(self,0xA6)
         
+    def get_key_id(self, code, state):
+        """
+        a key id is a combination of the code and the state ignoring
+        up and down bits. This is done to consider E0 and E1 states
+        to differentiate left and right control keys, arrows from numbers, etc
+        """
+        return int("%s%s"% (hex(code).replace('0x', ''),hex(state & 0xFE).replace('0x', '')))
+        
     def __default_element(self):
         """
         Used to return None instead of a key exception for maps
@@ -343,15 +355,16 @@ class AutoHotPy(object):
                     kb_event=ctypes.cast(stroke, ctypes.POINTER(InterceptionKeyStroke)).contents
                     print("Stroke scancode:" + str(hex(kb_event.code)))
                     print("Stroke state:" + str(hex(kb_event.state)))
-                    current_state = self.keyboard_state[kb_event.code] #current state for the key
-                    self.keyboard_state[kb_event.code] = kb_event.state
+                    current_key = get_key_id(kb_event.code,kb_event.state)
+                    current_state = self.keyboard_state[current_key] #current state for the key
+                    self.keyboard_state[current_key] = kb_event.state
                     if (kb_event.state & InterceptionKeyState.INTERCEPTION_KEY_UP): #up
-                        user_function = self.keyboard_handler_up[kb_event.code]
+                        user_function = self.keyboard_handler_up[current_key]
                     else:# down
                         if (current_state == kb_event.state):
-                            user_function = self.keyboard_handler_hold[kb_event.code]
+                            user_function = self.keyboard_handler_hold[current_key]
                         else:
-                            user_function = self.keyboard_handler_down[kb_event.code]
+                            user_function = self.keyboard_handler_down[current_key]
                     
                         
                     if (user_function):
@@ -430,28 +443,31 @@ class AutoHotPy(object):
     def stop(self):
         self.running = False
         
-    def getKeyboardState(self, code):
-        return self.keyboard_state[code]
+    def getKeyboardState(self, code, state):
+        """
+        Return the key state for a given scancode + state mask
+        """
+        return self.keyboard_state[get_key_id(code,state)]
     
     def getMouseState(self, code):
         return self.mouse_state[code]
     
     def registerExit(self, key, handler):
         self.exit_configured = True
-        self.keyboard_handler_down[int(key)] = handler
+        self.keyboard_handler_down[key.get_id()] = handler
         
     def registerForKeyDown(self, key, handler):
-        self.keyboard_handler_down[int(key)] = handler
+        self.keyboard_handler_down[key.get_id()] = handler
     
     def registerForKeyDownAndDisableHoldEvent(self, key, handler):
-        self.keyboard_handler_down[int(key)] = handler
-        self.keyboard_handler_hold[int(key)] = self.__null_handler
+        self.keyboard_handler_down[key.get_id()] = handler
+        self.keyboard_handler_hold[key.get_id()] = self.__null_handler
     
     def registerForKeyUp(self, key, handler):
-        self.keyboard_handler_up[int(key)] = handler
+        self.keyboard_handler_up[key.get_id()] = handler
         
     def registerForKeyHold(self, key, handler):
-        self.keyboard_handler_hold[int(key)] = handler
+        self.keyboard_handler_hold[key.get_id()] = handler
     
     def registerForMouseButton(self, key, handler):
         self.mouse_handler[int(key)] = handler
