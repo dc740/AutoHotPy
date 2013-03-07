@@ -44,29 +44,33 @@ class Task(object):
         self.function(self.arg1,self.arg2)
         
 class Key(object):
-    def __init__(self,auto,code):
+    def __init__(self,auto,code,*args):
         self.auto = auto
         self.code = code
+        if (len(args) != 0):
+            self.state = args[0]
+        else:
+            self.state = 0
         
     def up(self):
         up = InterceptionKeyStroke()
         up.code = self.code
-        up.state = InterceptionKeyState.INTERCEPTION_KEY_UP
+        up.state = InterceptionKeyState.INTERCEPTION_KEY_UP | self.state
         self.auto.sendToDefaultKeyboard(up)
         
     def press(self):
         event = InterceptionKeyStroke()
         event.code = self.code
-        event.state = InterceptionKeyState.INTERCEPTION_KEY_DOWN
+        event.state = InterceptionKeyState.INTERCEPTION_KEY_DOWN | self.state
         self.auto.sendToDefaultKeyboard(event)
-        self.sleep()
-        event.state = InterceptionKeyState.INTERCEPTION_KEY_UP
+        self.auto.sleep()
+        event.state = InterceptionKeyState.INTERCEPTION_KEY_UP | self.state
         self.auto.sendToDefaultKeyboard(event)
         
     def down(self):
         down = InterceptionKeyStroke()
         down.code = self.code
-        down.state = InterceptionKeyState.INTERCEPTION_KEY_DOWN
+        down.state = InterceptionKeyState.INTERCEPTION_KEY_DOWN | self.state
         self.auto.sendToDefaultKeyboard(down)
     
     def isPressed(self):
@@ -196,15 +200,15 @@ class AutoHotPy(object):
         self.NUMLOCK=Key(self,0x45)
         self.SCROLLLOCK=Key(self,0x46)
         self.HOME=Key(self,0x47)
-        self.UP_ARROW=Key(self,0x48)
+        self.UP_ARROW=Key(self,0x48, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.PAGE_UP=Key(self,0x49)
         self.DASH_NUM=Key(self,0x4A)
-        self.LEFT_ARROW=Key(self,0x4B)
+        self.LEFT_ARROW=Key(self,0x4B, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.NUMERIC_5 =Key(self,0x4C)
-        self.RIGHT_ARROW=Key(self,0x4D)
+        self.RIGHT_ARROW=Key(self,0x4D, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.PLUS=Key(self,0x4E)
         self.END=Key(self,0x4F)
-        self.DOWN_ARROW=Key(self,0x50)
+        self.DOWN_ARROW=Key(self,0x50, InterceptionKeyState.INTERCEPTION_KEY_E0)
         self.PAGE_DOWN=Key(self,0x51)
         self.INSERT=Key(self,0x52)
         self.DELETE=Key(self,0x53)
@@ -412,7 +416,7 @@ class AutoHotPy(object):
         """
         #Update button 1 if needed
         current_state = self.mouse_state[button]
-        if (current_state==self.mouse_state[newState]):
+        if (current_state==newState):
             return False
         else:
             self.mouse_state[button] = newState
@@ -421,7 +425,7 @@ class AutoHotPy(object):
     def isRunning(self):
         return self.running
         
-    def stop(self, autohotpy, event):
+    def stop(self):
         self.running = False
         
     def getKeyboardState(self, code):
@@ -430,9 +434,9 @@ class AutoHotPy(object):
     def getMouseState(self, code):
         return self.mouse_state[code]
     
-    def registerExit(self, key):
+    def registerExit(self, key, handler):
         self.exit_configured = True
-        self.keyboard_handler_down[int(key)] = self.stop
+        self.keyboard_handler_down[int(key)] = handler
         
     def registerForKeyDown(self, key, handler):
         self.keyboard_handler_down[int(key)] = handler
@@ -445,6 +449,16 @@ class AutoHotPy(object):
         self.keyboard_handler_up[int(key)] = handler
         
     def registerForKeyHold(self, key, handler):
+        self.keyboard_handler_hold[int(key)] = handler
+    
+    def registerForMouseButton(self, key, handler):
+        self.mouse_handler[int(key)] = handler
+    
+    def registerForMouseButtonAndDisableHoldEvent(self, key, handler):
+        self.mouse_handler[int(key)] = handler
+        self.mouse_handler_hold[int(key)] = self.__null_handler
+    
+    def registerForMouseButtonHold(self, key, handler):
         self.keyboard_handler_hold[int(key)] = handler
         
     def sendToDefaultMouse(self, stroke):
