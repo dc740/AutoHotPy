@@ -82,13 +82,14 @@ class Key(object):
 class AutoHotPy(object):
     
     def __init__(self):
-        #Load the dll and setup the required functions
-        self.interception = InterceptionWrapper()
-        # Setup context
-        self.context = self.interception.interception_create_context()
-        if (self.context == None):
-            raise Exception("Interception driver not installed!\nInstall required drivers to continue.")
-            
+        self.exit_configured = False
+        
+        #default interval between keypress
+        self.default_interval = 0.01
+        #Threads queue
+        self.kb_queue = Queue.Queue()
+        self.mouse_queue = Queue.Queue()
+        
         # Handlers
         self.keyboard_handler_down = collections.defaultdict(self.__default_element)
         self.keyboard_handler_hold = collections.defaultdict(self.__default_element)
@@ -98,34 +99,6 @@ class AutoHotPy(object):
         self.keyboard_state = collections.defaultdict(self.__default_element)
         self.mouse_state = collections.defaultdict(self.__default_element)
         
-        # Setup filters.
-        self.interception.interception_set_filter(self.context, self.interception.interception_is_keyboard, InterceptionFilterKeyState.INTERCEPTION_FILTER_KEY_ALL);
-        self.interception.interception_set_filter(self.context, self.interception.interception_is_mouse, InterceptionFilterMouseState.INTERCEPTION_FILTER_MOUSE_ALL);
-        
-        # Store a default keyboard and a default mouse
-        hardware_id = ctypes.c_byte * 512
-        for i in range(10):
-            current_dev = self.interception.INTERCEPTION_KEYBOARD(i)
-            if (self.interception.interception_is_keyboard(current_dev)):
-                size = self.interception.interception_get_hardware_id(self.context, current_dev, ctypes.byref(hardware_id()), 512);
-                if (size != 0):
-                    self.default_keyboard_device = current_dev
-                    break
-        for i in range(10):
-            current_dev = self.interception.INTERCEPTION_MOUSE(i)
-            if (self.interception.interception_is_mouse(current_dev)):
-                size = self.interception.interception_get_hardware_id(self.context, current_dev, ctypes.byref(hardware_id()), 512);
-                if (size != 0):
-                    self.default_mouse_device = current_dev
-                    break
-        
-        self.exit_configured = False
-        
-        #default interval between keypress
-        self.default_interval = 0.01
-        #Threads queue
-        self.kb_queue = Queue.Queue()
-        self.mouse_queue = Queue.Queue()
         
         # Default key scancodes (you can send your own anyway)
         # WARNING! Most of these depend on the keyboard implementation!!!!
@@ -323,7 +296,36 @@ class AutoHotPy(object):
     def start(self):
         if (not self.exit_configured):
             raise Exception("Configure a way to close the process before starting")
+        #Load the dll and setup the required functions
+        self.interception = InterceptionWrapper()
+        # Setup context
+        self.context = self.interception.interception_create_context()
+        if (self.context == None):
+            raise Exception("Interception driver not installed!\nInstall required drivers to continue.")
         self.running = True
+        
+        # Setup filters.
+        self.interception.interception_set_filter(self.context, self.interception.interception_is_keyboard, InterceptionFilterKeyState.INTERCEPTION_FILTER_KEY_ALL);
+        self.interception.interception_set_filter(self.context, self.interception.interception_is_mouse, InterceptionFilterMouseState.INTERCEPTION_FILTER_MOUSE_ALL);
+        
+        # Store a default keyboard and a default mouse
+        hardware_id = ctypes.c_byte * 512
+        for i in range(10):
+            current_dev = self.interception.INTERCEPTION_KEYBOARD(i)
+            if (self.interception.interception_is_keyboard(current_dev)):
+                size = self.interception.interception_get_hardware_id(self.context, current_dev, ctypes.byref(hardware_id()), 512);
+                if (size != 0):
+                    self.default_keyboard_device = current_dev
+                    break
+        for i in range(10):
+            current_dev = self.interception.INTERCEPTION_MOUSE(i)
+            if (self.interception.interception_is_mouse(current_dev)):
+                size = self.interception.interception_get_hardware_id(self.context, current_dev, ctypes.byref(hardware_id()), 512);
+                if (size != 0):
+                    self.default_mouse_device = current_dev
+                    break
+            
+        
         # Start threads. These will run the functions the user writes
         self.kb_thread = FunctionRunner(self.kb_queue)
         self.kb_thread.setDaemon(True)

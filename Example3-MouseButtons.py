@@ -17,8 +17,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
+#WARNING: handling mouse events is harder than keyboard events.
+# You have to do most things manually
 from AutoHotPy import AutoHotPy
 from InterceptionWrapper import InterceptionMouseState,InterceptionMouseStroke
+
 
 def exitAutoHotKey(autohotpy,event):
     """
@@ -30,7 +34,9 @@ def leftButton(autohotpy,event):
     """
     This function is called when you press LEFT mouse button
     """
-    stroke = InterceptionMouseStroke()
+    stroke = InterceptionMouseStroke() # I highly suggest you to open InterceptionWrapper to read which attributes this class has
+    
+    #To simulate a mouse click we manually have to press down, and release the buttons we want.
     stroke.state = InterceptionMouseState.INTERCEPTION_MOUSE_RIGHT_BUTTON_DOWN
     autohotpy.sendToDefaultMouse(stroke)
     stroke.state = InterceptionMouseState.INTERCEPTION_MOUSE_RIGHT_BUTTON_UP

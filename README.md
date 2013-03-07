@@ -17,12 +17,37 @@ The great thing is that Interception uses a very low level driver to capture key
 ##Why python?
 Because when you write AutoHotPy scripts, you learn a real programming language that you can later use to write your own programs.
 
+##Installation
+AutoHotPy doesn't really need any. You just place the scripts in the same folder and they just work. However, the libraries needed for it to run are not installed by default in any operative system.
+
+1.    Verify you have Python installed, if not, please install python to proceed
+2.    Install interception driver (and restart your computer): http://oblita.com/Interception.html
+hint: if double clicking in the executable doesn't install the driver (you will see an error message when you start AutoHotPy), try running a command line as administrator from the windows menu (right clicking on the program and selecting "Run as administrator"), and then go to your download location from the command line and run "install-interception.exe /install"
+3.    Place the .dll in the same place were you downloaded AutoHotPy. We need interception.dll to work!
 
 
+##Intro
+Python is a real programming language, so remember: everything you learn while you write the scripts can be used to write your own programs!
+To use AutoHotPy you only have to write a script (patience! you don't know how yet) and place it in the same folder where you installed the app.
+I will add more documentation later but lets get you working fast.
 
-##TODO: I still have to write the documentation. I could do it now, but I want to write some kind of tutorial. Programming sounds scary for many people, so it's better to ease their pain by giving as many examples as possible.
-The tool is already working. Just download Interception, install it, and then place the .dll next to the scripts to run it. but... the current example is not the easiest nor the right way to do a script. I was just testing some things. Really, just wait for the documentation.
 
+Open "Example1-GameCombo.py". The first paragraph is the license, you don't need it in your scripts.
+Follow the comments (everything that is placed after #) to understand what's happening.
+
+
+"Example2-MultipleKeys.py": this example shows how to handle multiple keys pressed at the same time. 
+The example opens the windows task manager (in windows 7) directly when you hit Ctr+Alt+Supr instead of taking you
+to the options screen.
+The trick is to remap Ctrl+Alt+Supr to Ctrl+Shift+Escape (that opens the task manager directly)
+There is literally no limit on how many pressed keys you can handle from AutoHotPy, but that doesn't mean the operative system won't have his own limitations.
+
+
+"Example3-MouseButtons.py": Handling mouse movement and clicks is the hardest part in AutoHotPy, but because you have to do each movement or click manually.
+
+
+Be patient! Don't panic if you need help with the language, there are many python developers around the world.
+You will find help in any language you can image.
 
 Copyright 2012 Emilio Moretti <emilio.morettiATgmailDOTcom>
 This program is distributed under the terms of the GNU Lesser General Public License.
