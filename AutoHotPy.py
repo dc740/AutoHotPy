@@ -355,7 +355,7 @@ class AutoHotPy(object):
                     kb_event=ctypes.cast(stroke, ctypes.POINTER(InterceptionKeyStroke)).contents
                     print("Stroke scancode:" + str(hex(kb_event.code)))
                     print("Stroke state:" + str(hex(kb_event.state)))
-                    current_key = get_key_id(kb_event.code,kb_event.state)
+                    current_key = self.get_key_id(kb_event.code,kb_event.state)
                     current_state = self.keyboard_state[current_key] #current state for the key
                     self.keyboard_state[current_key] = kb_event.state
                     if (kb_event.state & InterceptionKeyState.INTERCEPTION_KEY_UP): #up
@@ -447,7 +447,7 @@ class AutoHotPy(object):
         """
         Return the key state for a given scancode + state mask
         """
-        return self.keyboard_state[get_key_id(code,state)]
+        return self.keyboard_state[self.get_key_id(code,state)]
     
     def getMouseState(self, code):
         return self.mouse_state[code]
