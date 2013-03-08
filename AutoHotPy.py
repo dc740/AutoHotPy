@@ -100,6 +100,7 @@ class AutoHotPy(object):
         self.keyboard_handler_up = collections.defaultdict(self.__default_element)
         self.mouse_handler_hold = collections.defaultdict(self.__default_element)
         self.mouse_handler = collections.defaultdict(self.__default_element)
+        self.mouse_move_handler = None
         self.keyboard_state = collections.defaultdict(self.__default_kb_element)
         self.mouse_state = collections.defaultdict(self.__default_element)
         
@@ -385,17 +386,22 @@ class AutoHotPy(object):
                     
                 elif (self.interception.interception_is_mouse(device)):
                     mouse_event=ctypes.cast(stroke, ctypes.POINTER(InterceptionMouseStroke)).contents
-#                    print("Stroke state:" + str(hex(mouse_event.state)))
-#                    print("Stroke flags:" + str(hex(mouse_event.flags)))
-#                    print("Stroke information:" + str(hex(mouse_event.information)))
-#                    print("Stroke rolling:" + str(hex(mouse_event.rolling)))
-#                    print("Stroke x:" + str(hex(mouse_event.x)))
-#                    print("Stroke y:" + str(hex(mouse_event.y)))
-                    current_state_changed = self.__toggleMouseState(mouse_event)
-                    if (current_state_changed):
-                        user_function = self.mouse_handler[mouse_event.state]
+                    print("Stroke state:" + str(hex(mouse_event.state)))
+                    print("Stroke flags:" + str(hex(mouse_event.flags)))
+                    print("Stroke information:" + str(hex(mouse_event.information)))
+                    print("Stroke rolling:" + str(hex(mouse_event.rolling)))
+                    print("Stroke x:" + str(hex(mouse_event.x)))
+                    print("Stroke y:" + str(hex(mouse_event.y)))
+                    
+                    if (mouse_event.state != InterceptionMouseState.INTERCEPTION_MOUSE_MOVE):
+                        current_state_changed = self.__toggleMouseState(mouse_event)
+                        if (current_state_changed):
+                            user_function = self.mouse_handler[mouse_event.state]
+                        else:
+                            #TODO: implement something to make a fake on hold. Mouse clicks don't automatically resend events like keyboard keys do
+                            user_function = self.mouse_handler_hold[mouse_event.state]
                     else:
-                        user_function = self.mouse_handler_hold[mouse_event.state]
+                        user_function = self.mouse_move_handler
                     
                     if (user_function):
                         self.mouse_queue.put(Task(self,user_function,mouse_event))
@@ -489,6 +495,9 @@ class AutoHotPy(object):
     
     def registerForMouseButtonHold(self, key, handler):
         self.keyboard_handler_hold[int(key)] = handler
+    
+    def registerForMouseMovement(self, handler):
+        self.mouse_move_handler = handler
         
     def sendToDefaultMouse(self, stroke):
         self.interception.interception_send(self.context, self.default_mouse_device, ctypes.byref(stroke), 1)
