@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 from InterceptionWrapper import *
-import collections,time,threading,Queue
+import collections,time,threading,Queue,copy
 
 class FunctionRunner(threading.Thread):
     def __init__(self,queue):
@@ -93,6 +93,7 @@ class AutoHotPy(object):
         #Threads queue
         self.kb_queue = Queue.Queue()
         self.mouse_queue = Queue.Queue()
+        self.macro_queue = Queue.Queue()
         
         # Handlers
         self.keyboard_handler_down = collections.defaultdict(self.__default_element)
@@ -104,6 +105,11 @@ class AutoHotPy(object):
         self.keyboard_state = collections.defaultdict(self.__default_kb_element)
         self.mouse_state = collections.defaultdict(self.__default_element)
         
+        #are we recording a macro? Not yet...
+        self.recording_macro = False
+        self.enable_mouse_macro = True
+        self.enable_kb_macro = True
+        self.last_macro = []
         
         # Default key scancodes (you can send your own anyway)
         # WARNING! Most of these depend on the keyboard implementation!!!!
@@ -305,6 +311,40 @@ class AutoHotPy(object):
         """
         return None
         
+    def runMacro(self, autohotpy, macro_list):
+        """
+        go trough the events list and run the events in the specified time
+        run this in another thread or you will block the execution
+        autohotpy is in the parameters because I wanted to execute this as a task
+        """
+
+        def getTimeDifference(old,new):
+            if (old == 0):
+                return 0
+            return new-old
+        last_time=0
+        print("delta:")
+        #removing invalid events that the macro accidentally stores
+        #startkey UP is pressed as first char
+        #startkey DOWN is pressed as last char
+        macro_valid_elements = macro_list[1:len(macro_list)-1]
+        for event in macro_valid_elements:
+            print("delta:"+str(getTimeDifference(last_time,event[0])))
+            self.sleep(getTimeDifference(last_time,event[0])) #wait before firing the event
+            last_time = event[0]
+            if (isinstance(event[1],InterceptionMouseStroke)):
+#                print("Stroke state:" + str(hex(event[1].state)))
+#                print("Stroke flags:" + str(hex(event[1].flags)))
+#                print("Stroke information:" + str(hex(event[1].information)))
+#                print("Stroke rolling:" + str(hex(event[1].rolling)))
+#                print("Stroke x:" + str(hex(event[1].x)))
+#                print("Stroke y:" + str(hex(event[1].y)))
+                self.sendToDefaultMouse(event[1])
+            elif(isinstance(event[1],InterceptionKeyStroke)):
+#                print("Stroke scancode:" + str(hex(event[1].code)))
+#                print("Stroke state:" + str(hex(event[1].state)))
+                self.sendToDefaultKeyboard(event[1])
+    
     def sleep(self, *args):
         """
         Sleep. If no parameters are sent, default_interval is assumed.
@@ -357,6 +397,12 @@ class AutoHotPy(object):
         self.mouse_thread = FunctionRunner(self.mouse_queue)
         self.mouse_thread.setDaemon(True)
         self.mouse_thread.start()
+        self.macro_thread = FunctionRunner(self.macro_queue)
+        self.macro_thread.setDaemon(True)
+        self.macro_thread.start()
+        
+        
+        #reserve space for the stroke
         stroke = InterceptionStroke()
         
         while (self.running):
@@ -365,8 +411,8 @@ class AutoHotPy(object):
             if (self.interception.interception_receive(self.context, device, ctypes.byref(stroke), 1) > 0):
                 if (self.interception.interception_is_keyboard(device)):
                     kb_event=ctypes.cast(stroke, ctypes.POINTER(InterceptionKeyStroke)).contents
-                    print("Stroke scancode:" + str(hex(kb_event.code)))
-                    print("Stroke state:" + str(hex(kb_event.state)))
+                    if (self.recording_macro & self.enable_kb_macro):
+                        self.last_macro.append((time.time(), copy.deepcopy(kb_event)))
                     current_key = self.get_key_id(kb_event.code,kb_event.state)
                     current_state = self.keyboard_state[current_key] #current state for the key
                     self.keyboard_state[current_key] = kb_event.state
@@ -380,19 +426,14 @@ class AutoHotPy(object):
                     
                         
                     if (user_function):
-                        self.kb_queue.put(Task(self,user_function,kb_event))
+                        self.kb_queue.put(Task(self,user_function,copy.deepcopy(kb_event)))
                     else:
                         self.interception.interception_send(self.context, device, ctypes.byref(stroke), 1)
                     
                 elif (self.interception.interception_is_mouse(device)):
                     mouse_event=ctypes.cast(stroke, ctypes.POINTER(InterceptionMouseStroke)).contents
-                    print("Stroke state:" + str(hex(mouse_event.state)))
-                    print("Stroke flags:" + str(hex(mouse_event.flags)))
-                    print("Stroke information:" + str(hex(mouse_event.information)))
-                    print("Stroke rolling:" + str(hex(mouse_event.rolling)))
-                    print("Stroke x:" + str(hex(mouse_event.x)))
-                    print("Stroke y:" + str(hex(mouse_event.y)))
-                    
+                    if (self.recording_macro & self.enable_mouse_macro):
+                        self.last_macro.append((time.time(), copy.deepcopy(mouse_event)))
                     if (mouse_event.state != InterceptionMouseState.INTERCEPTION_MOUSE_MOVE):
                         current_state_changed = self.__toggleMouseState(mouse_event)
                         if (current_state_changed):
@@ -404,11 +445,11 @@ class AutoHotPy(object):
                         user_function = self.mouse_move_handler
                     
                     if (user_function):
-                        self.mouse_queue.put(Task(self,user_function,mouse_event))
+                        self.mouse_queue.put(Task(self,user_function,copy.deepcopy(mouse_event)))
                     else:
                         self.interception.interception_send(self.context, device, ctypes.byref(stroke), 1)
                 
-                
+        self.macro_queue.join()
         self.kb_queue.join()
         self.mouse_queue.join()
         self.interception.interception_destroy_context(self.context)
@@ -506,6 +547,51 @@ class AutoHotPy(object):
         self.interception.interception_send(self.context, self.default_keyboard_device, ctypes.byref(stroke), 1)    
     
     def sendToDevice(self, device, stroke):
-        self.interception.interception_send(self.context, device, ctypes.byref(stroke), 1)    
+        self.interception.interception_send(self.context, device, ctypes.byref(stroke), 1)  
+        
+    def mouseMacroStartStop(self):
+        """
+        start/stop recording a macro that only takes mouse events into accound
+        """
+        if (self.recording_macro):
+            self.recording_macro = False
+        else:
+            self.enable_mouse_macro = True
+            self.enable_kb_macro = False
+            self.recording_macro = True
+    def keyboardMacroStartStop(self):
+        """
+        start/stop recording a macro that only saves keyboard events
+        """
+        
+        if (self.recording_macro):
+            self.recording_macro = False
+        else:
+            self.enable_mouse_macro = False
+            self.enable_kb_macro = True
+            self.recording_macro = True
+            
+    def macroStartStop(self):
+        """
+        start/stop recording a macro
+        """
+        if (self.recording_macro):
+            self.recording_macro = False
+        else:
+            self.enable_mouse_macro = True
+            self.enable_kb_macro = True
+            self.clearLastRecordedMacro() #clear old macro (if any)
+            self.recording_macro = True
+        
+    def fireLastRecordedMacro(self):
+        self.recording_macro = False
+        self.macro_queue.put(Task(self,self.runMacro,self.last_macro))
+        
+    def clearLastRecordedMacro(self):
+        self.last_macro = []
+        
+    def saveLastRecordedMacro(self, filename):
+        self.recording_macro = False
+        
     
     
