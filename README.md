@@ -49,7 +49,12 @@ There is literally no limit on how many pressed keys you can handle from AutoHot
 
 "Example5-Macros.py": Shows how to record macros for keyboard and mouse
 
-"Example6-Macros2.py": Shows how to record macros for games, where the mouse starting position is important for the macro to success.
+"Example6-Macros2 - Gaming macros.py": Shows how to record macros for games, where the mouse starting position is important for the macro to success.
+
+"Example7-Macros3 - Saving macro to file.py": the title is quite descriptive.
+
+IMPORTANT NOTE:
+Known bug: the script crashes after saving a macro to file and then trying to run the macro again. Workaround: restart the application after saving a macro to a file.
 
 ##Running the scripts
 To run any of the scripts open a command line and run "python <yourscript>.py". That's all you need.
