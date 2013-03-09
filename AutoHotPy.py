@@ -18,7 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 from InterceptionWrapper import *
-import collections,time,threading,Queue,copy
+import collections,time,threading,Queue,copy,ctypes
+
 
 class FunctionRunner(threading.Thread):
     def __init__(self,queue):
@@ -597,8 +598,47 @@ class AutoHotPy(object):
     def clearLastRecordedMacro(self):
         self.last_macro = []
         
-    def saveLastRecordedMacro(self, filename):
-        self.recording_macro = False
+    def saveLastRecordedMacro(self, filename,*args):
+        openfile = open(filename, 'w')
+        output_script_text = "from AutoHotPy import AutoHotPy\nfrom InterceptionWrapper import *\ndef exitAutoHotKey(autohotpy,event):\n    autohotpy.stop()\ndef recorded_macro(autohotpy, event):\n"
+        openfile.write(output_script_text)
+        
+        if (len(args) == 1):
+            openfile.write("    autohotpy.moveMouseToPosition("+str(args[0][0])+","+str(args[0][1])+")\n")
+        
+        def getTimeDifference(old,new):
+            if (old == 0):
+                return 0
+            return new-old
+        last_time=0
+        #removing invalid events that the macro accidentally stores
+        #startkey UP is pressed as first char
+        #startkey DOWN is pressed as last char
+        macro_valid_elements = self.last_macro[1:len(self.last_macro)-1]
+        for event in macro_valid_elements:
+            sleep_time = getTimeDifference(last_time,event[0])
+            last_time = event[0]
+            
+            if (isinstance(event[1],InterceptionMouseStroke)):
+                openfile.write("    stroke = InterceptionMouseStroke()\n")
+                openfile.write("    stroke.state = "+str(event[1].state)+"\n")
+                openfile.write("    stroke.flags = "+str(event[1].flags)+"\n")
+                openfile.write("    stroke.rolling = "+str(event[1].rolling)+"\n")
+                openfile.write("    stroke.x = "+str(event[1].x)+"\n")
+                openfile.write("    stroke.y = "+str(event[1].y)+"\n")
+                openfile.write("    stroke.information = "+str(event[1].information)+"\n")
+                openfile.write("    autohotpy.sleep("+str(sleep_time)+")\n")
+                openfile.write("    autohotpy.sendToDefaultMouse(stroke)\n")
+            elif(isinstance(event[1],InterceptionKeyStroke)):
+                openfile.write("    stroke = InterceptionMouseStroke()\n")
+                openfile.write("    stroke.code = "+str(event[1].code)+"\n")
+                openfile.write("    stroke.state = "+str(event[1].state)+"\n")
+                openfile.write("    stroke.information = "+str(event[1].information)+"\n")
+                openfile.write("    autohotpy.sleep("+str(sleep_time)+")\n")
+                openfile.write("    autohotpy.sendToDefaultKeyboard(stroke)\n")
+        openfile.write("if __name__==\"__main__\":\n    auto = AutoHotPy()\n    auto.registerExit(auto.ESC,exitAutoHotKey)\n    auto.registerForKeyDown(auto.F1,recorded_macro)\n    auto.start()\n")
+        openfile.close()
+
         
     def isRecording(self):
         return self.recording_macro
