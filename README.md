@@ -53,8 +53,13 @@ There is literally no limit on how many pressed keys you can handle from AutoHot
 
 "Example7-Macros3 - Saving macro to file.py": the title is quite descriptive.
 
+"Example8-Macros4 - Auto-repeating macros.py": what if you want to always repeat a macro in a game.
+ Imagine something very boring, like a fishing in Argentum Online: U.press() -> click on water... repeat until you get tired, or bored.
+This example shows you how to repeat a macro automatically, until you disable it again, of course.
+
 IMPORTANT NOTE:
-Known bug: the script crashes after saving a macro to file and then trying to run the macro again. Workaround: restart the application after saving a macro to a file.
+Known bugs:
+* the script crashes after saving a macro to a file and then trying to run the macro again. Workaround: restart the application after saving a macro to a file.
 
 ##Running the scripts
 To run any of the scripts open a command line and run "python <yourscript>.py". That's all you need.

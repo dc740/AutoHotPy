@@ -660,4 +660,12 @@ class AutoHotPy(object):
         stroke.y = int(float(y)*height_constant)
         self.sendToDefaultMouse(stroke)
     
-    
+    def run(self, macro, trigger_event):
+        """
+        manually send a macro to be run
+        """
+        if (isinstance(trigger_event,InterceptionMouseStroke)):
+            self.mouse_queue.put(Task(self, macro, trigger_event))
+        elif(isinstance(trigger_event,InterceptionKeyStroke)):
+            self.kb_queue.put(Task(self, macro, trigger_event))
+        
