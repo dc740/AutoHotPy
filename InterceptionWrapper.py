@@ -17,9 +17,9 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
-
+# ctypes to work with interception .dll
 import ctypes
-
+    
 class InterceptionKeyState(object):
     INTERCEPTION_KEY_DOWN             = 0x00
     INTERCEPTION_KEY_UP               = 0x01
@@ -85,6 +85,15 @@ class InterceptionFilterMouseState(object):
     INTERCEPTION_FILTER_MOUSE_MOVE               = 0x1000
 
 class InterceptionMouseFlag(object):
+    """
+    If INTERCEPTION_MOUSE_MOVE_ABSOLUTE value is specified, dx and dy contain
+    normalized absolute coordinates between 0 and 65,535.
+    The event procedure maps these coordinates onto the display surface.
+    Coordinate (0,0) maps onto the upper-left corner of the display surface;
+    coordinate (65535,65535) maps onto the lower-right corner.
+    In a multimonitor system, the coordinates map to the primary monitor. 
+    http://msdn.microsoft.com/en-us/library/windows/desktop/ms646273%28v=vs.85%29.aspx
+    """
     INTERCEPTION_MOUSE_MOVE_RELATIVE      = 0x000
     INTERCEPTION_MOUSE_MOVE_ABSOLUTE      = 0x001
     INTERCEPTION_MOUSE_VIRTUAL_DESKTOP    = 0x002
@@ -105,6 +114,10 @@ class InterceptionKeyStroke(ctypes.Structure):
     _fields_ = [("code", ctypes.c_ushort),
                 ("state", ctypes.c_ushort),
                 ("information", ctypes.c_uint)]
+
+class Point(ctypes.Structure):
+    _fields_ = [("x", ctypes.c_long),
+                ("y", ctypes.c_long)]
 
 #typedef char InterceptionStroke[sizeof(InterceptionMouseStroke)];
 InterceptionStroke = InterceptionMouseStroke * 1

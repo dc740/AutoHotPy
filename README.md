@@ -1,7 +1,7 @@
 AutoHotPy
 =========
 
-AutoHotKey replacement using Incerception driver
+It started as an AutoHotKey replacement using Incerception driver, but now its a fully working automation tool. You can record activities to repeat them, or you can manually program them.
 
 #FAQ
 
@@ -45,11 +45,19 @@ There is literally no limit on how many pressed keys you can handle from AutoHot
 
 "Example3-MouseButtons.py": Handling mouse movement and clicks is the hardest part in AutoHotPy, but because you have to do each movement or click manually.
 
+"Example4-MouseMovement.py": Invert mouse axis
+
+"Example5-Macros.py": Shows how to record macros for keyboard and mouse
+
+"Example6-Macros2.py": Shows how to record macros for games, where the mouse starting position is important for the macro to success.
+
 ##Running the scripts
 To run any of the scripts open a command line and run "python <yourscript>.py". That's all you need.
 
 Be patient! Don't panic if you need help with the language, there are many python developers around the world.
 You will find help in any language you can image.
+
+
 
 Copyright 2012 Emilio Moretti <emilio.morettiATgmailDOTcom>
 This program is distributed under the terms of the GNU Lesser General Public License.

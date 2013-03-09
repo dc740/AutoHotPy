@@ -87,7 +87,10 @@ class AutoHotPy(object):
     
     def __init__(self):
         self.exit_configured = False
+        self.user32 = ctypes.windll.user32
         
+        #configure user32
+        self.user32.GetCursorPos.restype = ctypes.POINTER(Point)
         #default interval between keypress
         self.default_interval = 0.01
         #Threads queue
@@ -323,13 +326,11 @@ class AutoHotPy(object):
                 return 0
             return new-old
         last_time=0
-        print("delta:")
         #removing invalid events that the macro accidentally stores
         #startkey UP is pressed as first char
         #startkey DOWN is pressed as last char
         macro_valid_elements = macro_list[1:len(macro_list)-1]
         for event in macro_valid_elements:
-            print("delta:"+str(getTimeDifference(last_time,event[0])))
             self.sleep(getTimeDifference(last_time,event[0])) #wait before firing the event
             last_time = event[0]
             if (isinstance(event[1],InterceptionMouseStroke)):
@@ -443,7 +444,13 @@ class AutoHotPy(object):
                             user_function = self.mouse_handler_hold[mouse_event.state]
                     else:
                         user_function = self.mouse_move_handler
-                    
+                    #print("Stroke state:" + str(hex(mouse_event.state)))
+                    #print("Stroke flags:" + str(hex(mouse_event.flags)))
+                    #print("Stroke information:" + str(hex(mouse_event.information)))
+                    #print("Stroke rolling:" + str(hex(mouse_event.rolling)))
+                    #print("Stroke x:" + str(hex(mouse_event.x)))
+                    #print("Stroke y:" + str(hex(mouse_event.y)))
+                    #print("position 1:" +str(win32gui.GetCursorPos()))
                     if (user_function):
                         self.mouse_queue.put(Task(self,user_function,copy.deepcopy(mouse_event)))
                     else:
@@ -593,5 +600,24 @@ class AutoHotPy(object):
     def saveLastRecordedMacro(self, filename):
         self.recording_macro = False
         
+    def isRecording(self):
+        return self.recording_macro
+    
+    def getMousePosition(self):
+        #x, y = win32api.GetCursorPos()
+        res = Point()
+        self.user32.GetCursorPos(ctypes.byref(res))
+        return (res.x,res.y)
+    
+    def moveMouseToPosition(self, x, y):
+        width_constant = 65535.0/float(self.user32.GetSystemMetrics(0))
+        height_constant = 65535.0/float(self.user32.GetSystemMetrics (1)) 
+        # move mouse to the specified position
+        stroke = InterceptionMouseStroke()
+        stroke.state = InterceptionMouseState.INTERCEPTION_MOUSE_MOVE
+        stroke.flags = InterceptionMouseFlag.INTERCEPTION_MOUSE_MOVE_ABSOLUTE
+        stroke.x = int(float(x)*width_constant)
+        stroke.y = int(float(y)*height_constant)
+        self.sendToDefaultMouse(stroke)
     
     
