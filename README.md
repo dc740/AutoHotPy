@@ -57,6 +57,10 @@ There is literally no limit on how many pressed keys you can handle from AutoHot
  Imagine something very boring, like a fishing in Argentum Online: U.press() -> click on water... repeat until you get tired, or bored.
 This example shows you how to repeat a macro automatically, until you disable it again, of course.
 
+"Example9-Macros5 - Record mouse only.py": You can record a macro saving only mouse activity if you want. when you replay it, it will start from the first keyboard event automatically, and your gestures will me repeated, ignoring all mouse activity.
+
+"Example10-Macros6 - Record keyboard only.py": Same as Example9, but this time the mouse is ignored and we only record the keyboard activity.
+
 IMPORTANT NOTE:
 Known bugs:
 * the script crashes after saving a macro to a file and then trying to run the macro again. Workaround: restart the application after saving a macro to a file.
