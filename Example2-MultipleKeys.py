@@ -25,6 +25,8 @@ def exitAutoHotKey(autohotpy,event):
     """
     if (autohotpy.LEFT_CTRL.isPressed() & autohotpy.LEFT_ALT.isPressed()):  #check if ctrl and alt are also pressed
         autohotpy.stop()
+    else:#if ctrl +al is not pressed, then it's a normal  F10 keypress. send it as is
+        autohotpy.sendToDefaultKeyboard(event)
         
 def openTaskManager(autohotpy,event):
     """
@@ -39,6 +41,8 @@ def openTaskManager(autohotpy,event):
         autohotpy.sleep() 
         autohotpy.LEFT_SHIFT.up()
         autohotpy.ESC.up()
+    else: #if ctrl +al is not pressed, then it's a normal  Del keypress. send it as is
+        autohotpy.sendToDefaultKeyboard(event)
 
 if __name__=="__main__":
     auto = AutoHotPy()
