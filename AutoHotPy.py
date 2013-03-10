@@ -738,7 +738,7 @@ class AutoHotPy(object):
         
     def mouseMacroStartStop(self):
         """
-        start/stop recording a macro that only takes mouse events into accound
+        start/stop recording a macro that only takes mouse events into account
         """
         if (self.recording_macro):
             self.recording_macro = False
