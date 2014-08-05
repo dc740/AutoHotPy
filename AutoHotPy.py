@@ -112,6 +112,7 @@ class AutoHotPy(object):
         self.mouse_move_handler = None
         self.keyboard_state = collections.defaultdict(self.__default_kb_element)
         self.mouse_state = collections.defaultdict(self.__default_element)
+        self.loopingCall = None
         
         #are we recording a macro? Not yet...
         self.recording_macro = False
@@ -635,7 +636,8 @@ class AutoHotPy(object):
                         self.mouse_queue.put(Task(self,user_function,copy.deepcopy(mouse_event)))
                     else:
                         self.interception.interception_send(self.context, device, ctypes.byref(stroke), 1)
-                
+            if self.loopingCall != None:
+                self.loopingCall(self)             
         self.macro_queue.join()
         self.kb_queue.join()
         self.mouse_queue.join()
