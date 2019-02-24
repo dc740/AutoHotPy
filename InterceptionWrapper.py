@@ -189,6 +189,34 @@ class InterceptionWrapper(object):
         self.interception_is_invalid  = funct_type(self.__interception_is_invalid)
         self.interception_is_keyboard = funct_type(self.__interception_is_keyboard)
         self.interception_is_mouse = funct_type(self.__interception_is_mouse)
+
+
+        # Setup argument info for functions requiring pointer to InterceptionContext
+        self.interceptionDll.interception_destroy_context.argtypes = [InterceptionContext_p]
+        self.interceptionDll.interception_set_filter.argtypes = [InterceptionContext_p,
+                                                                 funct_type,
+                                                                 InterceptionFilter]
+        self.interceptionDll.interception_get_filter.argtypes = [InterceptionContext_p,
+                                                                 InterceptionDevice]
+        self.interceptionDll.interception_get_precedence.argtypes = [InterceptionContext_p,
+                                                                     InterceptionDevice]
+        self.interceptionDll.interception_set_precedence.argtypes = [InterceptionContext_p,
+                                                                     InterceptionDevice,
+                                                                     InterceptionPrecedence]
+        self.interceptionDll.interception_wait.argtypes = [InterceptionContext_p]
+        self.interceptionDll.interception_wait_with_timeout.argtypes = [InterceptionContext_p]
+        self.interceptionDll.interception_send.argtypes = [InterceptionContext_p,
+                                                           InterceptionDevice,
+                                                           ctypes.c_void_p,
+                                                           ctypes.c_uint]
+        self.interceptionDll.interception_receive.argtypes = [InterceptionContext_p,
+                                                           InterceptionDevice,
+                                                           ctypes.c_void_p,
+                                                           ctypes.c_uint]
+        self.interceptionDll.interception_get_hardware_id.argtypes = [InterceptionContext_p,
+                                                                      InterceptionDevice,
+                                                                      ctypes.c_void_p,
+                                                                      ctypes.c_uint]
         
     
     def interception_create_context(self):
