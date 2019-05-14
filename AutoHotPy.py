@@ -99,9 +99,9 @@ class AutoHotPy(object):
         #default interval between keypress
         self.default_interval = 0.01
         #Threads queue
-        self.kb_queue = Queue.Queue()
-        self.mouse_queue = Queue.Queue()
-        self.macro_queue = Queue.Queue()
+        self.kb_queue = queue.Queue()
+        self.mouse_queue = queue.Queue()
+        self.macro_queue = queue.Queue()
         
         # Handlers
         self.keyboard_handler_down = collections.defaultdict(self.__default_element)
