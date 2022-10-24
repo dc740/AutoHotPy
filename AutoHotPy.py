@@ -48,7 +48,7 @@ class Key(object):
     def __init__(self,auto,code,str_repr,*args):
         self.auto = auto
         self.code = code
-        if (len(args) != 0):
+        if len(args) != 0:
             self.state = args[0]
         else:
             self.state = 0
